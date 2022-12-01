@@ -1,0 +1,51 @@
+version: '3.3'
+
+services:
+
+  torrserver:
+    image: solopasha/torrserver
+    container_name: torrservermatrix
+    volumes:
+      - ./db:/torrserver/db
+      - /etc/localtime:/etc/localtime:ro
+    ports:
+      - 8090:8090
+    restart: unless-stopped
+
+  plex:
+    container_name: plex
+    hostname: plex
+    image: linuxserver/plex:latest
+    restart: unless-stopped
+    network_mode: host
+    environment:
+      - PUID=1000
+      - PGID=1000
+      - VERSION=docker
+    volumes:
+      - /home/artur/smarthome/mediaserver/plex-config:/config
+      - /home/artur/smarthome/mediaserver/plex-transcode:/transcode
+      - /mnt/share/films:/films
+      - /mnt/share/serials:/serials
+
+  minidlna:
+    container_name: minidlna
+    image: sego/minidlna
+    restart: always
+    volumes:
+      - /mnt/share/serials:/serials:ro
+      - /mnt/share/films:/films:ro
+      - /mnt/share/music:/music:ro
+      - /home/artur/smarthome/mediaserver/minidlna/minidlna.conf:/etc/minidlna.conf
+      - /home/artur/smarthome/mediaserver/minidlna/:/var/cache/minidlna
+    environment:
+      - MINIDLNA_media_dir1=V,/serials
+      - MINIDLNA_media_dir2=A,/music
+      - MINIDLNA_media_dir3=V,/films
+      - MINIDLNA_friendly_name=BDSM_Home
+      - MINIDLNA_merge_media_dirs=no
+      - MINIDLNA_root_container=B
+      - MINIDLNA_inotify=yes
+      - MINIDLNA_notify_interval=10
+      - MINIDLNA_db_dir=/var/cache/minidlna
+    network_mode: host
